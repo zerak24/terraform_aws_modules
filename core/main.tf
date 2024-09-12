@@ -31,7 +31,7 @@ module "ec2" {
   for_each = var.ec2
   source   = "git::https://github.com/terraform-aws-modules/terraform-aws-ec2-instance.git?ref=v5.7.0"
 
-  name                   = format("%s-%s", var.project.company, var.project.env, each.key)
+  name                   = format("%s-%s-%s", var.project.company, var.project.env, each.key)
   instance_type          = each.value.instance_type
   user_data_base64       = try(filebase64(each.value.init_script), null)
   create_eip             = true
