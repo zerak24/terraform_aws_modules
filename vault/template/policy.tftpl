@@ -1,0 +1,5 @@
+%{~ for policy in policies ~}
+path "secret/data/${policy.path}" {
+  capabilities = ["${join("\", \"", policy.capabilities)}"]
+}
+%{ endfor ~}
