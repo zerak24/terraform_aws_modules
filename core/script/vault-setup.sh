@@ -1,11 +1,10 @@
 #! /bin/bash
 
-DOMAIN_NAME=vault.dumblearner.click
 DIR="/home/ubuntu"
+SCRIPT_NAME="vault-script.sh"
 
 # vault
 
-snap install docker
 mkdir -p $DIR/vault/logs
 mkdir -p $DIR/vault/file
 mkdir -p $DIR/vault/config
@@ -30,6 +29,10 @@ tee $DIR/vault/config/vault.json << EOF
 }
 EOF
 
+# docker
+
+snap install docker
+
 # nginx
 
 apt install nginx -y
@@ -42,8 +45,6 @@ apt install certbot python3-certbot-nginx -y
 
 tee /etc/nginx/sites-available/default << EOF
 server {
-    server_name ${DOMAIN_NAME};
-
     listen [::]:443 ssl ipv6only=on;
     listen 443 ssl;
 
@@ -57,27 +58,55 @@ server {
 }
 EOF
 
-# test
+## script
 
-# tee /etc/nginx/sites-available/default << EOF
-# server {
+tee $DIR/$SCRIPT_NAME << EOF
+#! /bin/bash
 
-#     listen [::]:80;
-#     listen 80;
-#     location / {
-#             proxy_pass http://127.0.0.1:8200;
-#             proxy_set_header Host \$host;
-#             proxy_set_header X-Real-IP \$remote_addr;
-#             proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-#             proxy_set_header X-Forwarded-Proto https;
-#     }
-# }
-# EOF
+## tool's flag
 
-systemctl reload nginx
+while (( "\$#" ))
+do
+  case "\$1" in
+    -a|--action)
+      ACTION=\$2
+      shift 2
+      ;;
+    -d|--domain)
+      DOMAIN_NAME=\$2
+      shift 2
+      ;;
+    -h|--help)
+      echo "
+-a|--action            : action want to execute (init, restart)
+-d|--domain (optional) : vault domain name (use with init) (ex: vault.example.info)
+"
+      exit 0
+      ;;
+  esac
+done
 
-## Manual
-# export DOMAIN_NAME=vault.dumblearner.click
-# export DIR="/home/ubuntu"
-# docker run --detach --network host --restart always --name vault --hostname $DOMAIN_NAME -v $DIR/vault/config:/vault/config -v $DIR/vault/logs:/vault/logs -v $DIR/vault/file:/vault/file --entrypoint docker-entrypoint.sh --cap-add=IPC_LOCK vault:1.13.3 vault server -config=vault/config/vault.json
-# certbot --nginx -d $DOMAIN_NAME --register-unsafely-without-email --agree-tos
+## main function
+
+case "\${ACTION}" in
+  init)
+    certbot --nginx -d \${DOMAIN_NAME} --register-unsafely-without-email --agree-tos
+    docker run --detach --hostname \${DOMAIN_NAME} \
+      --network host --restart always --name vault \
+      --volume $DIR/vault/config:/vault/config \
+      --volume $DIR/vault/logs:/vault/logs \
+      --volume $DIR/vault/file:/vault/file \
+      --entrypoint docker-entrypoint.sh --cap-add=IPC_LOCK \
+      vault:1.13.3 vault server -config=vault/config/vault.json
+    ;;
+  restart)
+    docker restart vault
+    ;;
+  *)
+    echo "wrong action"
+    exit 0
+    ;;
+esac
+EOF
+
+chmod 4755 $DIR/$SCRIPT_NAME
