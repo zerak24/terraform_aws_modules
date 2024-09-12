@@ -64,4 +64,4 @@ case "\${ACTION}" in
 esac
 EOF
 
-chmod 4755 $DIR/$SCRIPT_NAME
+chmod 700 $DIR/$SCRIPT_NAME

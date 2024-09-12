@@ -43,24 +43,9 @@ systemctl enable nginx
 apt update
 apt install certbot python3-certbot-nginx -y
 
-tee /etc/nginx/sites-available/default << EOF
-server {
-    listen [::]:443 ssl ipv6only=on;
-    listen 443 ssl;
-
-    location / {
-            proxy_pass http://127.0.0.1:8200;
-            proxy_set_header Host \$host;
-            proxy_set_header X-Real-IP \$remote_addr;
-            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto https;
-    }
-}
-EOF
-
 ## script
 
-tee $DIR/$SCRIPT_NAME << EOF
+tee $DIR/$SCRIPT_NAME << FILEEND
 #! /bin/bash
 
 ## tool's flag
@@ -90,6 +75,21 @@ done
 
 case "\${ACTION}" in
   init)
+    tee /etc/nginx/sites-available/default << EOF
+server {
+    server_name \${DOMAIN_NAME};
+    listen [::]:80 ipv6only=on;
+    listen 80;
+
+    location / {
+            proxy_pass http://127.0.0.1:8200;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto https;
+    }
+}
+EOF
     certbot --nginx -d \${DOMAIN_NAME} --register-unsafely-without-email --agree-tos
     docker run --detach --hostname \${DOMAIN_NAME} \
       --network host --restart always --name vault \
@@ -107,6 +107,6 @@ case "\${ACTION}" in
     exit 0
     ;;
 esac
-EOF
+FILEEND
 
-chmod 4755 $DIR/$SCRIPT_NAME
+chmod 700 $DIR/$SCRIPT_NAME
