@@ -45,7 +45,7 @@ done
 
 case "\${ACTION}" in
   init)
-    docker run --detach --hostname \${DOMAIN_NAME} \
+    docker run --detach --hostname gitlab \
       --network host --restart always --name gitlab \
       --volume $DIR/gitlab/config:/etc/gitlab \
       --volume $DIR/gitlab/logs:/var/log/gitlab \

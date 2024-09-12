@@ -90,8 +90,8 @@ server {
     }
 }
 EOF
-    certbot --nginx -d \${DOMAIN_NAME} --register-unsafely-without-email --agree-tos
-    docker run --detach --hostname \${DOMAIN_NAME} \
+    certbot --nginx --domains \${DOMAIN_NAME} --register-unsafely-without-email --agree-tos
+    docker run --detach --hostname vault \
       --network host --restart always --name vault \
       --volume $DIR/vault/config:/vault/config \
       --volume $DIR/vault/logs:/vault/logs \
