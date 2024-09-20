@@ -1,7 +1,7 @@
 variable "project" {
   type = object({
-    env           = string
-    company       = string
+    env     = string
+    company = string
   })
 }
 
