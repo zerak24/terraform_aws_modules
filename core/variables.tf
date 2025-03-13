@@ -10,9 +10,9 @@ variable "vpc" {
     cidr                = string
     zones               = list(string)
     public_subnets      = list(string)
-    public_subnet_tags  = map(string)
+    public_subnet_tags  = optional(map(string))
     private_subnets     = list(string)
-    private_subnet_tags = map(string)
+    private_subnet_tags = optional(map(string))
     database_subnets    = list(string)
     single_nat_gateway  = bool
   })
