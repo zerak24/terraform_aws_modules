@@ -188,7 +188,7 @@ module "asg" {
   # iam_role_permissions_boundary = each.value.iam_role_additional_policy
   
   security_groups = each.value.vpc_security_group_ids
-  block_device_mappings = each.value.block_device_mappings
+  block_device_mappings = each.value.autoscaling.block_device_mappings
 
   instance_market_options = {
     market_type = "ON_DEMAND"
