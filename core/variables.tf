@@ -20,10 +20,26 @@ variable "vpc" {
 }
 variable "ec2" {
   type = map(object({
+    autoscaling                    = optional(map(object({
+      min_size                     = number
+      max_size                     = number
+      desired_size                 = number
+      capacity_type                = string
+      health_check_type            = optional(string, "EC2")
+      iam_role_additional_policies = map(string)
+      block_device_mappings = optional(map(object({
+        device_name = string
+        ebs = object({
+          volume_size           = number
+          volume_type           = string
+          delete_on_termination = bool
+        })
+      })), null)
+    })), {})
     instance_type          = string
     ami                    = optional(string)
     init_script            = optional(string)
-    zone                   = string
+    zone                   = optional(string)
     root_block_device      = optional(list(any), [])
     create_key             = optional(bool, false)
     key_name               = optional(string)
@@ -88,4 +104,11 @@ variable "eks" {
     cluster_enabled_log_types               = optional(any)
   })
   default = null
+}
+
+variable "alb" {
+  type =object({
+    name = string
+  })
+  default = {}
 }

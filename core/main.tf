@@ -28,7 +28,7 @@ module "vpc" {
 }
 
 module "ec2" {
-  for_each = var.ec2
+  for_each = { for k, v in var.ec2 : k => v if !v.autoscaling }
   source   = "git::https://github.com/terraform-aws-modules/terraform-aws-ec2-instance.git?ref=v5.7.0"
 
   name                   = format("%s-%s-%s", var.project.company, var.project.env, each.key)
@@ -160,3 +160,117 @@ module "eks" {
   tags = local.tags
 }
 
+module "asg" {
+  for_each = { for k, v in var.ec2 : k => v if v.autoscaling }
+  source  = "git::https://github.com/terraform-aws-modules/terraform-aws-autoscaling.git?ref=v8.1.0"
+
+  name = format("%s-%s-%s-asg", var.project.company, var.project.env, each.key)
+
+  min_size                  = each.value.autoscaling.min_size
+  max_size                  = each.value.autoscaling.max_size
+  desired_capacity          = each.value.autoscaling.desired_capacity
+  wait_for_capacity_timeout = 0
+  health_check_type         = each.value.autoscaling.health_check_type
+  vpc_zone_identifier       = module.vpc[0].private_subnets
+
+  launch_template_name        = format("%s-%s-%s-launch-template", var.project.company, var.project.env, each.key)
+  update_default_version      = true
+
+  image_id          = each.value.ami
+  instance_type     = each.value.instance_type
+  ebs_optimized     = true
+  enable_monitoring = true
+
+  # IAM role & instance profile
+  create_iam_instance_profile = true
+  iam_role_name               = format("%s-%s-%s-role", var.project.company, var.project.env, each.key)
+  iam_role_path               = "/ec2/"
+
+  iam_role_policy_document = {
+    statement = {
+      sid = "1"
+
+      actions = [
+        "s3:ListAllMyBuckets",
+        "s3:GetBucketLocation",
+      ]
+
+      resources = [
+        "arn:aws:s3:::*",
+      ]
+    }
+  }
+
+  block_device_mappings = each.value.block_device_mappings
+
+  instance_market_options = {
+    market_type = each.value.autoscaling.capacity_type
+  }
+}
+
+# module "alb" {
+#   count = var.asg == nul ? 0 : 1
+#   source  = "git::https://github.com/terraform-aws-modules/terraform-aws-alb.git?ref=v9.13.0"
+
+#   name    = var.alb.name
+#   vpc_id  = module.vpc.vpc_id
+#   subnets = module.vpc.public_subnets
+
+#   security_group_ingress_rules = {
+#     all_http = {
+#       from_port   = 80
+#       to_port     = 80
+#       ip_protocol = "tcp"
+#       description = "HTTP web traffic"
+#       cidr_ipv4   = "0.0.0.0/0"
+#     }
+#     all_https = {
+#       from_port   = 443
+#       to_port     = 443
+#       ip_protocol = "tcp"
+#       description = "HTTPS web traffic"
+#       cidr_ipv4   = "0.0.0.0/0"
+#     }
+#   }
+#   security_group_egress_rules = {
+#     all = {
+#       ip_protocol = "-1"
+#       cidr_ipv4   = "0.0.0.0/0"
+#     }
+#   }
+
+#   access_logs = {
+#     bucket = "my-alb-logs"
+#   }
+
+#   listeners = {
+#     ex-http-https-redirect = {
+#       port     = 80
+#       protocol = "HTTP"
+#       redirect = {
+#         port        = "443"
+#         protocol    = "HTTPS"
+#         status_code = "HTTP_301"
+#       }
+#     }
+#     ex-https = {
+#       port            = 443
+#       protocol        = "HTTPS"
+#       certificate_arn = "arn:aws:iam::123456789012:server-certificate/test_cert-123456789012"
+
+#       forward = {
+#         target_group_key = "asg_target_group"
+#       }
+#     }
+#   }
+
+#   target_groups = {
+#     asg_target_group = {
+#       protocol         = "HTTP"
+#       port             = 80
+#       target_type      = "autoscaling_group"
+#       target_id        = module.asg.autoscaling_group_id
+#     }
+#   }
+
+# }
