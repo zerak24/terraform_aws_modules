@@ -181,14 +181,13 @@ module "asg" {
   ebs_optimized     = true
   enable_monitoring = true
 
-  # IAM role & instance profile
   create_iam_instance_profile = true
   iam_role_name               = format("%s-%s-%s-role", var.project.company, var.project.env, each.key)
   iam_role_path               = "/ec2/"
 
-  iam_role_policy_document = each.value.role_custom_policy
+  iam_role_permissions_boundary = each.value.iam_role_permissions_boundary
   
-  security_group = each.value.vpc_security_group_ids
+  security_groups = each.value.vpc_security_group_ids
   block_device_mappings = each.value.block_device_mappings
 
   instance_market_options = {

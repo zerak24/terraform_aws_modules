@@ -43,7 +43,7 @@ variable "ec2" {
     root_block_device      = optional(list(any), [])
     create_key             = optional(bool, false)
     key_name               = optional(string)
-    role_custom_policy     = optional(any)
+    iam_role_permissions_boundary   = optional(string)
     vpc_security_group_ids = list(string)
   }))
   default = {}
