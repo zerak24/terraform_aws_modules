@@ -186,20 +186,7 @@ module "asg" {
   iam_role_name               = format("%s-%s-%s-role", var.project.company, var.project.env, each.key)
   iam_role_path               = "/ec2/"
 
-  iam_role_policy_document = {
-    statement = {
-      sid = "1"
-
-      actions = [
-        "s3:ListAllMyBuckets",
-        "s3:GetBucketLocation",
-      ]
-
-      resources = [
-        "arn:aws:s3:::*",
-      ]
-    }
-  }
+  iam_role_policy_document = each.value.role_custom_policy
 
   block_device_mappings = each.value.block_device_mappings
 
