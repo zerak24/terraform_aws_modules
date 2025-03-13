@@ -21,19 +21,19 @@ variable "vpc" {
 variable "ec2" {
   type = map(object({
     autoscaling                    = optional(map(object({
-      min_size                     = number
-      max_size                     = number
-      desired_size                 = number
-      capacity_type                = string
+      min_size                     = optional(number, 1)
+      max_size                     = optional(number, 10)
+      desired_size                 = optional(number, 1)
+      capacity_type                = optional(string, "ON_DEMAND")
       health_check_type            = optional(string, "EC2")
       iam_role_additional_policy   = optional(string)
       block_device_mappings        = optional(list(object({
         device_name = string
         ebs = object({
-          volume_size           = number
-          volume_type           = string
-          delete_on_termination = bool
-        })
+          volume_size           = optional(number, 20)
+          volume_type           = optional(string, "gp3")
+          delete_on_termination = optional(bool, false)
+        }, {})
       })))
     })), {})
     instance_type          = string
