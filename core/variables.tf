@@ -26,7 +26,7 @@ variable "ec2" {
       desired_size                 = number
       capacity_type                = string
       health_check_type            = optional(string, "EC2")
-      iam_role_additional_policies = optional(map(string))
+      iam_role_additional_policy   = optional(string)
       block_device_mappings        = optional(list(object({
         device_name = string
         ebs = object({
@@ -34,7 +34,7 @@ variable "ec2" {
           volume_type           = string
           delete_on_termination = bool
         })
-      })), {})
+      })))
     })), {})
     instance_type          = string
     ami                    = optional(string)

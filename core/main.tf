@@ -185,7 +185,7 @@ module "asg" {
   iam_role_name               = format("%s-%s-%s-role", var.project.company, var.project.env, each.key)
   iam_role_path               = "/ec2/"
 
-  # iam_role_permissions_boundary = each.value.iam_role_additional_policies[0]
+  # iam_role_permissions_boundary = each.value.iam_role_additional_policy
   
   security_groups = each.value.vpc_security_group_ids
   block_device_mappings = each.value.block_device_mappings
