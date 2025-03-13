@@ -27,7 +27,7 @@ variable "ec2" {
       capacity_type                = string
       health_check_type            = optional(string, "EC2")
       iam_role_additional_policies = map(string)
-      block_device_mappings = optional(map(object({
+      block_device_mappings = optional(list(object({
         device_name = string
         ebs = object({
           volume_size           = number
