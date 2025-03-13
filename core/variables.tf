@@ -20,7 +20,7 @@ variable "vpc" {
 }
 variable "ec2" {
   type = map(object({
-    autoscaling                    = optional(map(object({
+    autoscaling                    = optional(object({
       min_size                     = optional(number, 1)
       max_size                     = optional(number, 10)
       desired_size                 = optional(number, 1)
@@ -35,7 +35,7 @@ variable "ec2" {
           delete_on_termination = optional(bool, false)
         })
       })))
-    })), {})
+    }), {})
     instance_type          = string
     ami                    = optional(string)
     init_script            = optional(string)
