@@ -30,7 +30,7 @@ variable "ec2" {
       block_device_mappings        = optional(list(object({
         device_name = string
         ebs = object({
-          volume_size           = optional(number, 20)
+          volume_size           = number
           volume_type           = optional(string, "gp3")
           delete_on_termination = optional(bool, false)
         }, {})
