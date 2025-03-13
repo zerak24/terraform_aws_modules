@@ -26,15 +26,15 @@ variable "ec2" {
       desired_size                 = number
       capacity_type                = string
       health_check_type            = optional(string, "EC2")
-      iam_role_additional_policies = map(string)
-      block_device_mappings = optional(list(object({
+      iam_role_additional_policies = optional(map(string))
+      block_device_mappings        = optional(list(object({
         device_name = string
         ebs = object({
           volume_size           = number
           volume_type           = string
           delete_on_termination = bool
         })
-      })), null)
+      })), {})
     })), {})
     instance_type          = string
     ami                    = optional(string)
@@ -43,7 +43,6 @@ variable "ec2" {
     root_block_device      = optional(list(any), [])
     create_key             = optional(bool, false)
     key_name               = optional(string)
-    iam_role_permissions_boundary   = optional(string)
     vpc_security_group_ids = list(string)
   }))
   default = {}
