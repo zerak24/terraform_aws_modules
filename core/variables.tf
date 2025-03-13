@@ -107,9 +107,9 @@ variable "eks" {
   default = null
 }
 
-variable "alb" {
-  type =object({
-    name = string
-  })
-  default = {}
-}
+# variable "alb" {
+#   type =object({
+#     name = string
+#   })
+#   default = {}
+# }

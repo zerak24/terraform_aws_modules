@@ -187,7 +187,8 @@ module "asg" {
   iam_role_path               = "/ec2/"
 
   iam_role_policy_document = each.value.role_custom_policy
-
+  
+  security_group = each.value.vpc_security_group_ids
   block_device_mappings = each.value.block_device_mappings
 
   instance_market_options = {
