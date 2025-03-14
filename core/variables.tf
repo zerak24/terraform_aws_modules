@@ -25,6 +25,16 @@ variable "ec2" {
       max_size                     = optional(number, 10)
       desired_capacity             = optional(number, 1)
       health_check_type            = optional(string, "EC2")
+      scaling_policies = map(object({
+        policy_type = optional(string, "TargetTrackingScaling")
+        estimated_instance_warmup = optional(number, 1200)
+        target_tracking_configuration = optional(object({
+          predefined_metric_specification = optional(object({
+            predefined_metric_type = optional(string, "ASGAverageCPUUtilization")
+          }))
+          target_value = optional(number, 50)
+        }))
+      }))
       block_device_mappings        = optional(list(object({
         device_name = string
         ebs = object({

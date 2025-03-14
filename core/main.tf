@@ -237,18 +237,19 @@ module "asg" {
     availability_zone = "${each.value.zone}"
   }
 
-  scaling_policies = {
-    avg-cpu-policy-greater-than-50 = {
-      policy_type               = "TargetTrackingScaling"
-      estimated_instance_warmup = 1200
-      target_tracking_configuration = {
-        predefined_metric_specification = {
-          predefined_metric_type = "ASGAverageCPUUtilization"
-        }
-        target_value = 50.0
-      }
-    }
-  }
+  # scaling_policies = {
+  #   avg-cpu-policy-greater-than-50 = {
+  #     policy_type               = "TargetTrackingScaling"
+  #     estimated_instance_warmup = 1200
+  #     target_tracking_configuration = {
+  #       predefined_metric_specification = {
+  #         predefined_metric_type = "ASGAverageCPUUtilization"
+  #       }
+  #       target_value = 50.0
+  #     }
+  #   }
+  # }
+  scaling_policies = each.value.autoscaling.scaling_policies
 
   traffic_source_attachments = { for lbr in each.value.lb:
     "${lbr}" => {
