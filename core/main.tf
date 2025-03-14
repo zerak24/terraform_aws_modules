@@ -249,44 +249,15 @@ module "asg" {
     }
   }
 
-  # traffic_source_attachments = { for lb in each.value.lb:
-  #   lb => {
-  #     traffic_source_identifier = module.alb["${lb}"].target_groups["${each.key}"].arn
-  #     traffic_source_type       = "elbv2"
-  #   }
-  # }
+  traffic_source_attachments = { for lb in each.value.lb:
+    lb => {
+      traffic_source_identifier = module.alb[lb].target_groups[each.key].arn
+      traffic_source_type       = "elbv2"
+    }
+  }
 
   tags = local.tags
 }
-
-# module "alb" {
-#   for_each = var.alb
-#   source  = "git::https://github.com/terraform-aws-modules/terraform-aws-alb.git?ref=v9.13.0"
-
-#   name    = format("%s-%s-%s-alb", var.project.company, var.project.env, each.key)
-#   vpc_id  = module.vpc[0].vpc_id
-#   subnets = module.vpc[0].public_subnets
-
-#   security_group_ingress_rules = merge([
-#     for sgr in each.value.security_groups: {
-#       for i, item in var.sg[sgr].ingress_with_cidr_blocks:
-#         "${sgr}-${i}" => item
-#     }
-#   ]...)
-#   security_group_egress_rules = {
-#     all = {
-#       ip_protocol = "-1"
-#       cidr_ipv4   = "0.0.0.0/0"
-#     }
-#   }
-
-#   access_logs = each.value.access_logs_bucket != "" ? {bucket = "${each.value.access_logs_bucket}"} : {}
-
-#   listeners = each.value.listeners
-
-#   target_groups = each.value.target_groups
-
-# }
 
 module "alb" {
   for_each = var.alb
