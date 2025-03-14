@@ -266,7 +266,7 @@ module "asg" {
   }
 
   instance_market_options = {
-    market_type = "ON_DEMAND"
+    market_type = "on_demand"
     spot_options = {
       block_duration_minutes = 60
     }
