@@ -327,14 +327,7 @@ module "alb" {
   #     }
   #   }
   # }
-  listeners = {
-    for k, v in each.value.listeners:
-      k => {
-        port = v.port
-        protocol = v.protocol
-        forward = v.forward
-      }
-    }
+  listeners = each.value.listeners
 
   target_groups = {
     ex_asg = {

@@ -112,8 +112,14 @@ variable "alb" {
     security_groups = list(string)
     access_logs_bucket = optional(string, "")
     deletion_protection = optional(bool, true)
-    listeners = map(any)
-    target_groups = map(any)
+    listeners = map(object({
+      port = optional(number)
+      protocol = optional(string)
+      forward = optional(object({
+        target_group_key = optional(string)
+      }))
+    }))
+    target_groups = any
   }))
   default = {}
 }
