@@ -299,6 +299,21 @@ module "asg" {
     availability_zone = module.vpc[0].zones[0]
   }
 
+  tag_specifications = [
+    {
+      resource_type = "instance"
+      tags          = { WhatAmI = "Instance" }
+    },
+    {
+      resource_type = "volume"
+      tags          = { WhatAmI = "Volume" }
+    },
+    {
+      resource_type = "spot-instances-request"
+      tags          = { WhatAmI = "SpotInstanceRequest" }
+    }
+  ]
+
   tags = local.tags
 }
 
