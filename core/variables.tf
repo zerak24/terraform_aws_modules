@@ -44,7 +44,7 @@ variable "ec2" {
     vpc_security_group_ids = list(string)
     iam_role_permissions_boundary   = optional(string,"")
 
-    lb = optional(list(string))
+    lb = optional(list(string), [])
   }))
   default = {}
 }
