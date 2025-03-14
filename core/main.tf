@@ -249,9 +249,9 @@ module "asg" {
     }
   }
 
-  traffic_source_attachments = { for lb in each.value.lb:
-    lb => {
-      traffic_source_identifier = module.alb[lb].target_groups[each.key].arn
+  traffic_source_attachments = { for lbr in each.value.lb:
+    "${lbr}" => {
+      traffic_source_identifier = module.alb["${lbr}"].target_groups["web_http"].arn
       traffic_source_type       = "elbv2"
     }
   }
