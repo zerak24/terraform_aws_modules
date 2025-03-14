@@ -267,12 +267,12 @@ module "alb" {
   vpc_id  = module.vpc[0].vpc_id
   subnets = module.vpc[0].public_subnets
 
-  # security_group_ingress_rules = merge([
-  #   for sgr in each.value.security_groups: {
-  #     for i, item in var.sg[sgr].ingress_with_cidr_blocks:
-  #       "${sgr}-${i}" => item
-  #   }
-  # ]...)
+  security_group_ingress_rules = merge([
+    for sgr in each.value.security_groups: {
+      for i, item in var.sg[sgr].ingress_with_cidr_blocks:
+        "${sgr}-${i}" => item
+    }
+  ]...)
   security_group_egress_rules = {
     all = {
       ip_protocol = "-1"
@@ -280,10 +280,31 @@ module "alb" {
     }
   }
 
-  # access_logs = each.value.access_logs_bucket != "" ? {bucket = "${each.value.access_logs_bucket}"} : {}
+  access_logs = each.value.access_logs_bucket != "" ? {bucket = "${each.value.access_logs_bucket}"} : {}
 
-  listeners = each.value.listeners
+  listeners = {
+    ex_http = {
+      port     = 80
+      protocol = "HTTP"
 
-  target_groups = each.value.target_groups
+      forward = {
+        target_group_key = "ex_asg"
+      }
+    }
+  }
+
+  target_groups = {
+    ex_asg = {
+      backend_protocol                  = "HTTP"
+      backend_port                      = 80
+      target_type                       = "instance"
+      deregistration_delay              = 5
+      load_balancing_cross_zone_enabled = true
+
+      # There's nothing to attach here in this definition.
+      # The attachment happens in the ASG module above
+      create_attachment = false
+    }
+  }
 
 }
