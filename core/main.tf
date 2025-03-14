@@ -265,13 +265,6 @@ module "asg" {
     cpu_credits = "standard"
   }
 
-  instance_market_options = {
-    market_type = "on_demand"
-    spot_options = {
-      block_duration_minutes = 60
-    }
-  }
-
   placement = {
     availability_zone = var.vpc.zones[0]
   }
