@@ -237,21 +237,17 @@ module "asg" {
     triggers = ["tag"]
   }
 
-  # Launch template
-  launch_template_name        = "example-asg"
-  launch_template_description = "Launch template example"
+  launch_template_name        = format("%s-%s-%s-launch-template", var.project.company, var.project.env, each.key)
   update_default_version      = true
 
-  image_id          = "ami-ebd02392"
-  instance_type     = "t3.micro"
+  image_id          = each.value.ami
+  instance_type     = each.value.instance_type
   ebs_optimized     = true
   enable_monitoring = true
 
-  # IAM role & instance profile
   create_iam_instance_profile = true
-  iam_role_name               = "example-asg"
+  iam_role_name               = format("%s-%s-%s-role", var.project.company, var.project.env, each.key)
   iam_role_path               = "/ec2/"
-  iam_role_description        = "IAM role example"
   iam_role_tags = {
     CustomIamRole = "Yes"
   }
@@ -261,7 +257,6 @@ module "asg" {
 
   block_device_mappings = [
     {
-      # Root volume
       device_name = "/dev/xvda"
       no_device   = 0
       ebs = {
