@@ -236,72 +236,49 @@ module "asg" {
     availability_zone = "${each.value.zone}"
   }
 
+  scaling_policies = {
+    avg-cpu-policy-greater-than-50 = {
+      policy_type               = "TargetTrackingScaling"
+      estimated_instance_warmup = 1200
+      target_tracking_configuration = {
+        predefined_metric_specification = {
+          predefined_metric_type = "ASGAverageCPUUtilization"
+        }
+        target_value = 50.0
+      }
+    }
+  }
+
+  traffic_source_attachments = { for lb in each.value.lb:
+    lb => {
+      traffic_source_identifier = module.alb.target_groups["${each.key}"].arn
+      traffic_source_type       = "elbv2"
+    }
+  }
+
   tags = local.tags
 }
 
-# module "alb" {
-#   count = var.asg == nul ? 0 : 1
-#   source  = "git::https://github.com/terraform-aws-modules/terraform-aws-alb.git?ref=v9.13.0"
+module "alb" {
+  for_each = var.alb
+  source  = "git::https://github.com/terraform-aws-modules/terraform-aws-alb.git?ref=v9.13.0"
 
-#   name    = var.alb.name
-#   vpc_id  = module.vpc.vpc_id
-#   subnets = module.vpc.public_subnets
+  name    = format("%s-%s-%s-alb", var.project.company, var.project.env, each.key)
+  vpc_id  = module.vpc[0].vpc_id
+  subnets = module.vpc[0].public_subnets
 
-#   security_group_ingress_rules = {
-#     all_http = {
-#       from_port   = 80
-#       to_port     = 80
-#       ip_protocol = "tcp"
-#       description = "HTTP web traffic"
-#       cidr_ipv4   = "0.0.0.0/0"
-#     }
-#     all_https = {
-#       from_port   = 443
-#       to_port     = 443
-#       ip_protocol = "tcp"
-#       description = "HTTPS web traffic"
-#       cidr_ipv4   = "0.0.0.0/0"
-#     }
-#   }
-#   security_group_egress_rules = {
-#     all = {
-#       ip_protocol = "-1"
-#       cidr_ipv4   = "0.0.0.0/0"
-#     }
-#   }
+  security_group_ingress_rules = { for sg in each.value.security_groups: sg => module.sg[sg].ingress_with_cidr_blocks }
+  security_group_egress_rules = {
+    all = {
+      ip_protocol = "-1"
+      cidr_ipv4   = "0.0.0.0/0"
+    }
+  }
 
-#   access_logs = {
-#     bucket = "my-alb-logs"
-#   }
+  access_logs = contains(keys(each.value), "access_logs_bucket") ? {bucket = each.value.access_logs_bucket} : {}
 
-#   listeners = {
-#     ex-http-https-redirect = {
-#       port     = 80
-#       protocol = "HTTP"
-#       redirect = {
-#         port        = "443"
-#         protocol    = "HTTPS"
-#         status_code = "HTTP_301"
-#       }
-#     }
-#     ex-https = {
-#       port            = 443
-#       protocol        = "HTTPS"
-#       certificate_arn = "arn:aws:iam::123456789012:server-certificate/test_cert-123456789012"
+  listeners = each.value.listeners
 
-#       forward = {
-#         target_group_key = "asg_target_group"
-#       }
-#     }
-#   }
+  target_groups = each.value.target_groups
 
-#   target_groups = {
-#     asg_target_group = {
-#       protocol         = "HTTP"
-#       port             = 80
-#       target_type      = "autoscaling_group"
-#       target_id        = module.asg.autoscaling_group_id
-#     }
-#   }
-
-# }
+}

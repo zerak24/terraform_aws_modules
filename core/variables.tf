@@ -43,6 +43,8 @@ variable "ec2" {
     key_name               = optional(string)
     vpc_security_group_ids = list(string)
     iam_role_permissions_boundary   = optional(string,"")
+
+    lb = optional(list(string))
   }))
   default = {}
 }
@@ -103,4 +105,14 @@ variable "eks" {
     cluster_enabled_log_types               = optional(any)
   })
   default = null
+}
+
+variable "alb" {
+  type = map(object({
+    security_groups = list(string)
+    access_logs_bucket = optional(string)
+    listeners = map(any)
+    target_groups = map(any)
+  }))
+  default = {}
 }
