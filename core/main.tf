@@ -290,11 +290,15 @@ module "asg" {
 
 module "alb" {
   for_each = var.alb
-  source  = "git::https://github.com/terraform-aws-modules/terraform-aws-alb.git?ref=v9.13.0"
+  source  = "git::https://github.com/terraform-aws-modules/terraform-aws-alb.git?ref=v9.10.0"
 
-  name    = format("%s-%s-%s-alb", var.project.company, var.project.env, each.key)
+  name = each.key
+
   vpc_id  = module.vpc[0].vpc_id
   subnets = module.vpc[0].public_subnets
+
+  # For example only
+  enable_deletion_protection = false
 
   # Security Group
   security_group_ingress_rules = {
@@ -302,61 +306,40 @@ module "alb" {
       from_port   = 80
       to_port     = 80
       ip_protocol = "tcp"
-      description = "HTTP web traffic"
-      cidr_ipv4   = "0.0.0.0/0"
-    }
-    all_https = {
-      from_port   = 443
-      to_port     = 443
-      ip_protocol = "tcp"
-      description = "HTTPS web traffic"
       cidr_ipv4   = "0.0.0.0/0"
     }
   }
   security_group_egress_rules = {
     all = {
       ip_protocol = "-1"
-      cidr_ipv4   = "10.0.0.0/16"
+      cidr_ipv4   = module.vpc.vpc_cidr_block
     }
-  }
-
-  access_logs = {
-    bucket = "my-alb-logs"
   }
 
   listeners = {
-    ex-http-https-redirect = {
+    ex_http = {
       port     = 80
       protocol = "HTTP"
-      redirect = {
-        port        = "443"
-        protocol    = "HTTPS"
-        status_code = "HTTP_301"
-      }
-    }
-    ex-https = {
-      port            = 443
-      protocol        = "HTTPS"
-      certificate_arn = "arn:aws:iam::123456789012:server-certificate/test_cert-123456789012"
 
       forward = {
-        target_group_key = "ex-instance"
+        target_group_key = "ex_asg"
       }
     }
   }
 
   target_groups = {
-    ex-instance = {
-      name_prefix      = "h1"
-      protocol         = "HTTP"
-      port             = 80
-      target_type      = "instance"
-      target_id        = "i-0f6d38a07d50d080f"
+    ex_asg = {
+      backend_protocol                  = "HTTP"
+      backend_port                      = 80
+      target_type                       = "instance"
+      deregistration_delay              = 5
+      load_balancing_cross_zone_enabled = true
+
+      # There's nothing to attach here in this definition.
+      # The attachment happens in the ASG module above
+      create_attachment = false
     }
   }
 
-  tags = {
-    Environment = "Development"
-    Project     = "Example"
-  }
+  tags = local.tags
 }
