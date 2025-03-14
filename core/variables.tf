@@ -24,7 +24,6 @@ variable "ec2" {
       min_size                     = optional(number, 1)
       max_size                     = optional(number, 10)
       desired_capacity             = optional(number, 1)
-      capacity_type                = optional(string, "ON_DEMAND")
       health_check_type            = optional(string, "EC2")
       iam_role_additional_policy   = optional(string)
       block_device_mappings        = optional(list(object({
