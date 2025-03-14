@@ -317,28 +317,24 @@ module "alb" {
     }
   }
 
-  # listeners = {
-  #   ex_http = {
-  #     port     = 80
-  #     protocol = "HTTP"
+  listeners = {
+    web_http = {
+      port     = 80
+      protocol = "HTTP"
 
-  #     forward = {
-  #       target_group_key = "ex_asg"
-  #     }
-  #   }
-  # }
-  listeners = each.value.listeners
+      forward = {
+        target_group_key = "web_http"
+      }
+    }
+  }
 
   target_groups = {
-    ex_asg = {
+    web_http = {
       backend_protocol                  = "HTTP"
       backend_port                      = 80
       target_type                       = "instance"
       deregistration_delay              = 5
       load_balancing_cross_zone_enabled = true
-
-      # There's nothing to attach here in this definition.
-      # The attachment happens in the ASG module above
       create_attachment = false
     }
   }
