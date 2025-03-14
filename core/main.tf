@@ -280,7 +280,7 @@ module "alb" {
     }
   }
 
-  access_logs = each.value.access_logs_bucket != "" ? {bucket = "${each.value.access_logs_bucket}"} : {}
+  # access_logs = each.value.access_logs_bucket != "" ? {bucket = "${each.value.access_logs_bucket}"} : {}
 
   # listeners = {
   #   https = {
