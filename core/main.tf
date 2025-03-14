@@ -28,7 +28,7 @@ module "vpc" {
 }
 
 module "ec2" {
-  for_each = { for k, v in var.ec2 : k => v if !contains(keys(v), "autoscaling") }
+  for_each = { for k, v in var.ec2 : k => v if contains(keys(v), "autoscaling") == false }
   source   = "git::https://github.com/terraform-aws-modules/terraform-aws-ec2-instance.git?ref=v5.7.0"
 
   name                   = format("%s-%s-%s", var.project.company, var.project.env, each.key)
