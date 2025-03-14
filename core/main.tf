@@ -301,14 +301,25 @@ module "alb" {
   enable_deletion_protection = false
 
   # Security Group
-  security_group_ingress_rules = {
-    all_http = {
-      from_port   = 80
-      to_port     = 80
-      ip_protocol = "tcp"
-      cidr_ipv4   = "0.0.0.0/0"
+  # security_group_ingress_rules = {
+  #   all_http = {
+  #     from_port   = 80
+  #     to_port     = 80
+  #     ip_protocol = "tcp"
+  #     cidr_ipv4   = "0.0.0.0/0"
+  #   }
+  # }
+  security_group_ingress_rules = merge([
+    for sgr in each.value.security_groups: {
+      for i, item in var.sg[sgr].ingress_with_cidr_blocks:
+        "${sgr}-${i}" => {
+          from_port = item.from_port
+          to_port = item.to_port
+          ip_protocol = item.protocol
+          cidr_ipv4 = item.cidr_blocks
+        }
     }
-  }
+  ]...)
   security_group_egress_rules = {
     all = {
       ip_protocol = "-1"
