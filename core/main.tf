@@ -266,7 +266,7 @@ module "asg" {
   }
 
   instance_market_options = {
-    market_type = "spot"
+    market_type = each.value.autoscaling.capacity_type
     spot_options = {
       block_duration_minutes = 60
     }
@@ -294,7 +294,7 @@ module "asg" {
   ]
 
   placement = {
-    availability_zone = "us-west-1b"
+    availability_zone = module.vpc[0].zones[0]
   }
 
   tag_specifications = [
