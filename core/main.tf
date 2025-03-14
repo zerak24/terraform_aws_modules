@@ -278,39 +278,9 @@ module "asg" {
     http_put_response_hop_limit = 1
   }
 
-  network_interfaces = [
-    {
-      delete_on_termination = true
-      description           = "eth0"
-      device_index          = 0
-      security_groups       = ["sg-12345678"]
-    },
-    {
-      delete_on_termination = true
-      description           = "eth1"
-      device_index          = 1
-      security_groups       = ["sg-12345678"]
-    }
-  ]
-
   placement = {
     availability_zone = var.vpc.zones[0]
   }
-
-  tag_specifications = [
-    {
-      resource_type = "instance"
-      tags          = { WhatAmI = "Instance" }
-    },
-    {
-      resource_type = "volume"
-      tags          = { WhatAmI = "Volume" }
-    },
-    {
-      resource_type = "spot-instances-request"
-      tags          = { WhatAmI = "SpotInstanceRequest" }
-    }
-  ]
 
   tags = local.tags
 }
