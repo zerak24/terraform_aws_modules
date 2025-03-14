@@ -34,7 +34,7 @@ variable "ec2" {
           volume_type           = optional(string, "gp3")
           delete_on_termination = optional(bool, false)
         })
-      })))
+      })), [{}])
     }), {})
     instance_type          = string
     ami                    = optional(string)
