@@ -172,6 +172,7 @@ module "asg" {
   wait_for_capacity_timeout = 0
   health_check_type         = each.value.autoscaling.health_check_type
   vpc_zone_identifier       = module.vpc[0].private_subnets
+  key_name                  = each.value.create_key ? format("%s-%s-%s-key", var.project.company, var.project.env, each.key) : each.value.key_name
 
   initial_lifecycle_hooks = [
     {
