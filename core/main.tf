@@ -248,12 +248,7 @@ module "asg" {
   create_iam_instance_profile = true
   iam_role_name               = format("%s-%s-%s-role", var.project.company, var.project.env, each.key)
   iam_role_path               = "/ec2/"
-  # iam_role_tags = {
-  #   CustomIamRole = "Yes"
-  # }
-  # iam_role_policies = {
-  #   AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  # }
+  iam_role_permissions_boundary = each.value.iam_role_permissions_boundary
 
   block_device_mappings = each.value.autoscaling.block_device_mappings
 
@@ -271,7 +266,7 @@ module "asg" {
   }
 
   instance_market_options = {
-    market_type = "spot"
+    market_type = each.value.autoscaling.capacity_type
     spot_options = {
       block_duration_minutes = 60
     }
@@ -282,6 +277,8 @@ module "asg" {
     http_tokens                 = "required"
     http_put_response_hop_limit = 1
   }
+
+  security_groups = each.value.vpc_security_group_ids
 
   network_interfaces = [
     {
