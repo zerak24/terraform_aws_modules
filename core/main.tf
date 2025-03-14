@@ -267,7 +267,12 @@ module "alb" {
   vpc_id  = module.vpc[0].vpc_id
   subnets = module.vpc[0].public_subnets
 
-  security_group_ingress_rules = { for sg in each.value.security_groups: sg => module.sg[sg].ingress_with_cidr_blocks }
+  security_group_ingress_rules = merger([
+    for sgr in each.value.security_groups: {
+      for i, item in var.sg[sgr].ingress_with_cidr_blocks:
+        "${sgr}-${i}" => item
+    }
+  ]...)
   security_group_egress_rules = {
     all = {
       ip_protocol = "-1"
