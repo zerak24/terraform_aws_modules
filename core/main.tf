@@ -160,6 +160,41 @@ module "eks" {
   tags = local.tags
 }
 
+# module "asg" {
+#   for_each = { for k, v in var.ec2 : k => v if v.autoscaling != null }
+#   source  = "git::https://github.com/terraform-aws-modules/terraform-aws-autoscaling.git?ref=v8.1.0"
+
+#   name = format("%s-%s-%s-asg", var.project.company, var.project.env, each.key)
+
+#   min_size                  = each.value.autoscaling.min_size
+#   max_size                  = each.value.autoscaling.max_size
+#   desired_capacity          = each.value.autoscaling.desired_capacity
+#   wait_for_capacity_timeout = 0
+#   health_check_type         = each.value.autoscaling.health_check_type
+#   vpc_zone_identifier       = module.vpc[0].private_subnets
+
+#   launch_template_name        = format("%s-%s-%s-launch-template", var.project.company, var.project.env, each.key)
+#   update_default_version      = true
+
+#   image_id          = each.value.ami
+#   instance_type     = each.value.instance_type
+#   ebs_optimized     = true
+#   enable_monitoring = true
+
+#   create_iam_instance_profile = true
+#   iam_role_name               = format("%s-%s-%s-role", var.project.company, var.project.env, each.key)
+#   iam_role_path               = "/ec2/"
+
+#   # iam_role_permissions_boundary = each.value.iam_role_additional_policy
+  
+#   security_groups = each.value.vpc_security_group_ids
+#   block_device_mappings = each.value.autoscaling.block_device_mappings
+
+#   instance_market_options = {
+#     market_type = "ON_DEMAND"
+#   }
+# }
+
 module "asg" {
   for_each = { for k, v in var.ec2 : k => v if v.autoscaling != null }
   source  = "git::https://github.com/terraform-aws-modules/terraform-aws-autoscaling.git?ref=v8.1.0"
@@ -173,26 +208,141 @@ module "asg" {
   health_check_type         = each.value.autoscaling.health_check_type
   vpc_zone_identifier       = module.vpc[0].private_subnets
 
-  launch_template_name        = format("%s-%s-%s-launch-template", var.project.company, var.project.env, each.key)
+  initial_lifecycle_hooks = [
+    {
+      name                  = "ExampleStartupLifeCycleHook"
+      default_result        = "CONTINUE"
+      heartbeat_timeout     = 60
+      lifecycle_transition  = "autoscaling:EC2_INSTANCE_LAUNCHING"
+      notification_metadata = jsonencode({ "hello" = "world" })
+    },
+    {
+      name                  = "ExampleTerminationLifeCycleHook"
+      default_result        = "CONTINUE"
+      heartbeat_timeout     = 180
+      lifecycle_transition  = "autoscaling:EC2_INSTANCE_TERMINATING"
+      notification_metadata = jsonencode({ "goodbye" = "world" })
+    }
+  ]
+
+  instance_refresh = {
+    strategy = "Rolling"
+    preferences = {
+      checkpoint_delay       = 600
+      checkpoint_percentages = [35, 70, 100]
+      instance_warmup        = 300
+      min_healthy_percentage = 50
+      max_healthy_percentage = 100
+    }
+    triggers = ["tag"]
+  }
+
+  # Launch template
+  launch_template_name        = "example-asg"
+  launch_template_description = "Launch template example"
   update_default_version      = true
 
-  image_id          = each.value.ami
-  instance_type     = each.value.instance_type
+  image_id          = "ami-ebd02392"
+  instance_type     = "t3.micro"
   ebs_optimized     = true
   enable_monitoring = true
 
+  # IAM role & instance profile
   create_iam_instance_profile = true
-  iam_role_name               = format("%s-%s-%s-role", var.project.company, var.project.env, each.key)
+  iam_role_name               = "example-asg"
   iam_role_path               = "/ec2/"
+  iam_role_description        = "IAM role example"
+  iam_role_tags = {
+    CustomIamRole = "Yes"
+  }
+  iam_role_policies = {
+    AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  }
 
-  # iam_role_permissions_boundary = each.value.iam_role_additional_policy
-  
-  security_groups = each.value.vpc_security_group_ids
-  block_device_mappings = each.value.autoscaling.block_device_mappings
+  block_device_mappings = [
+    {
+      # Root volume
+      device_name = "/dev/xvda"
+      no_device   = 0
+      ebs = {
+        delete_on_termination = true
+        encrypted             = true
+        volume_size           = 20
+        volume_type           = "gp2"
+      }
+    }, {
+      device_name = "/dev/sda1"
+      no_device   = 1
+      ebs = {
+        delete_on_termination = true
+        encrypted             = true
+        volume_size           = 30
+        volume_type           = "gp2"
+      }
+    }
+  ]
+
+  capacity_reservation_specification = {
+    capacity_reservation_preference = "open"
+  }
+
+  cpu_options = {
+    core_count       = 1
+    threads_per_core = 1
+  }
+
+  credit_specification = {
+    cpu_credits = "standard"
+  }
 
   instance_market_options = {
-    market_type = "ON_DEMAND"
+    market_type = "spot"
+    spot_options = {
+      block_duration_minutes = 60
+    }
   }
+
+  metadata_options = {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+  }
+
+  network_interfaces = [
+    {
+      delete_on_termination = true
+      description           = "eth0"
+      device_index          = 0
+      security_groups       = ["sg-12345678"]
+    },
+    {
+      delete_on_termination = true
+      description           = "eth1"
+      device_index          = 1
+      security_groups       = ["sg-12345678"]
+    }
+  ]
+
+  placement = {
+    availability_zone = "us-west-1b"
+  }
+
+  tag_specifications = [
+    {
+      resource_type = "instance"
+      tags          = { WhatAmI = "Instance" }
+    },
+    {
+      resource_type = "volume"
+      tags          = { WhatAmI = "Volume" }
+    },
+    {
+      resource_type = "spot-instances-request"
+      tags          = { WhatAmI = "SpotInstanceRequest" }
+    }
+  ]
+
+  tags = local.tags
 }
 
 # module "alb" {
