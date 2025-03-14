@@ -282,7 +282,36 @@ module "alb" {
 
   access_logs = each.value.access_logs_bucket != "" ? {bucket = "${each.value.access_logs_bucket}"} : {}
 
-  listeners = each.value.listeners
+  # listeners = {
+  #   https = {
+  #     port            = 443
+  #     protocol        = "HTTPS"
+
+  #     forward = {
+  #       target_group_key = "web-server"
+  #     }
+
+  #     rules = {
+  #       redirect = {
+  #         priority = 5000
+  #         actions = [{
+  #           type        = "redirect"
+  #           status_code = "HTTP_302"
+  #           host        = "www.youtube.com"
+  #           path        = "/watch"
+  #           query       = "v=dQw4w9WgXcQ"
+  #           protocol    = "HTTPS"
+  #         }]
+
+  #         conditions = [{
+  #           path_pattern = {
+  #             values = ["/onboarding", "/docs"]
+  #           }
+  #         }]
+  #       }
+  #     }
+  #   }
+  # }
 
   target_groups = each.value.target_groups
 
