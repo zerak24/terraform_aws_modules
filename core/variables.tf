@@ -35,7 +35,7 @@ variable "ec2" {
           delete_on_termination = optional(bool, false)
         })
       })), [])
-    }), {})
+    }), null)
     instance_type          = string
     ami                    = optional(string)
     init_script            = optional(string)
