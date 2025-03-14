@@ -297,18 +297,8 @@ module "alb" {
   vpc_id  = module.vpc[0].vpc_id
   subnets = module.vpc[0].public_subnets
 
-  # For example only
-  enable_deletion_protection = false
+  enable_deletion_protection = each.value.deletion_protection
 
-  # Security Group
-  # security_group_ingress_rules = {
-  #   all_http = {
-  #     from_port   = 80
-  #     to_port     = 80
-  #     ip_protocol = "tcp"
-  #     cidr_ipv4   = "0.0.0.0/0"
-  #   }
-  # }
   security_group_ingress_rules = merge([
     for sgr in each.value.security_groups: {
       for i, item in var.sg[sgr].ingress_with_cidr_blocks:
@@ -326,17 +316,25 @@ module "alb" {
       cidr_ipv4   = "0.0.0.0/0"
     }
   }
-  # listeners = each.value.listeners
-  listeners = {
-    ex_http = {
-      port     = 80
-      protocol = "HTTP"
 
-      forward = {
-        target_group_key = "ex_asg"
+  # listeners = {
+  #   ex_http = {
+  #     port     = 80
+  #     protocol = "HTTP"
+
+  #     forward = {
+  #       target_group_key = "ex_asg"
+  #     }
+  #   }
+  # }
+  listeners = {
+    for k, v in each.value.listeners:
+      k => {
+        port = v.port
+        protocol = v.protocol
+        forward = v.forward
       }
     }
-  }
 
   target_groups = {
     ex_asg = {

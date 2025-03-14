@@ -111,6 +111,7 @@ variable "alb" {
   type = map(object({
     security_groups = list(string)
     access_logs_bucket = optional(string, "")
+    deletion_protection = optional(bool, true)
     listeners = map(any)
     target_groups = map(any)
   }))
