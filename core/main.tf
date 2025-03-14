@@ -282,29 +282,8 @@ module "alb" {
 
   access_logs = each.value.access_logs_bucket != "" ? {bucket = "${each.value.access_logs_bucket}"} : {}
 
-  listeners = {
-    ex_http = {
-      port     = 80
-      protocol = "HTTP"
+  listeners = each.value.listeners
 
-      forward = {
-        target_group_key = "ex_asg"
-      }
-    }
-  }
-
-  target_groups = {
-    ex_asg = {
-      backend_protocol                  = "HTTP"
-      backend_port                      = 80
-      target_type                       = "instance"
-      deregistration_delay              = 5
-      load_balancing_cross_zone_enabled = true
-
-      # There's nothing to attach here in this definition.
-      # The attachment happens in the ASG module above
-      create_attachment = false
-    }
-  }
+  target_groups = each.value.target_groups
 
 }
