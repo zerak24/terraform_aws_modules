@@ -316,16 +316,17 @@ module "alb" {
     }
   }
 
-  listeners = {
-    ex_http = {
-      port     = 80
-      protocol = "HTTP"
+  listeners = each.value.listeners
+  # listeners = {
+  #   ex_http = {
+  #     port     = 80
+  #     protocol = "HTTP"
 
-      forward = {
-        target_group_key = "ex_asg"
-      }
-    }
-  }
+  #     forward = {
+  #       target_group_key = "ex_asg"
+  #     }
+  #   }
+  # }
 
   target_groups = {
     ex_asg = {
