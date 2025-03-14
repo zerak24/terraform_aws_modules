@@ -294,7 +294,7 @@ module "asg" {
   ]
 
   placement = {
-    availability_zone = module.vpc[0].zones[0]
+    availability_zone = var.vpc.zones[0]
   }
 
   tag_specifications = [
