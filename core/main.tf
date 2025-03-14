@@ -259,6 +259,35 @@ module "asg" {
   tags = local.tags
 }
 
+# module "alb" {
+#   for_each = var.alb
+#   source  = "git::https://github.com/terraform-aws-modules/terraform-aws-alb.git?ref=v9.13.0"
+
+#   name    = format("%s-%s-%s-alb", var.project.company, var.project.env, each.key)
+#   vpc_id  = module.vpc[0].vpc_id
+#   subnets = module.vpc[0].public_subnets
+
+#   security_group_ingress_rules = merge([
+#     for sgr in each.value.security_groups: {
+#       for i, item in var.sg[sgr].ingress_with_cidr_blocks:
+#         "${sgr}-${i}" => item
+#     }
+#   ]...)
+#   security_group_egress_rules = {
+#     all = {
+#       ip_protocol = "-1"
+#       cidr_ipv4   = "0.0.0.0/0"
+#     }
+#   }
+
+#   access_logs = each.value.access_logs_bucket != "" ? {bucket = "${each.value.access_logs_bucket}"} : {}
+
+#   listeners = each.value.listeners
+
+#   target_groups = each.value.target_groups
+
+# }
+
 module "alb" {
   for_each = var.alb
   source  = "git::https://github.com/terraform-aws-modules/terraform-aws-alb.git?ref=v9.13.0"
@@ -267,52 +296,67 @@ module "alb" {
   vpc_id  = module.vpc[0].vpc_id
   subnets = module.vpc[0].public_subnets
 
-  security_group_ingress_rules = merge([
-    for sgr in each.value.security_groups: {
-      for i, item in var.sg[sgr].ingress_with_cidr_blocks:
-        "${sgr}-${i}" => item
+  # Security Group
+  security_group_ingress_rules = {
+    all_http = {
+      from_port   = 80
+      to_port     = 80
+      ip_protocol = "tcp"
+      description = "HTTP web traffic"
+      cidr_ipv4   = "0.0.0.0/0"
     }
-  ]...)
-  security_group_egress_rules = {
-    all = {
-      ip_protocol = "-1"
+    all_https = {
+      from_port   = 443
+      to_port     = 443
+      ip_protocol = "tcp"
+      description = "HTTPS web traffic"
       cidr_ipv4   = "0.0.0.0/0"
     }
   }
+  security_group_egress_rules = {
+    all = {
+      ip_protocol = "-1"
+      cidr_ipv4   = "10.0.0.0/16"
+    }
+  }
 
-  # access_logs = each.value.access_logs_bucket != "" ? {bucket = "${each.value.access_logs_bucket}"} : {}
+  access_logs = {
+    bucket = "my-alb-logs"
+  }
 
-  # listeners = {
-  #   https = {
-  #     port            = 443
-  #     protocol        = "HTTPS"
+  listeners = {
+    ex-http-https-redirect = {
+      port     = 80
+      protocol = "HTTP"
+      redirect = {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+    ex-https = {
+      port            = 443
+      protocol        = "HTTPS"
+      certificate_arn = "arn:aws:iam::123456789012:server-certificate/test_cert-123456789012"
 
-  #     forward = {
-  #       target_group_key = "web-server"
-  #     }
+      forward = {
+        target_group_key = "ex-instance"
+      }
+    }
+  }
 
-  #     rules = {
-  #       redirect = {
-  #         priority = 5000
-  #         actions = [{
-  #           type        = "redirect"
-  #           status_code = "HTTP_302"
-  #           host        = "www.youtube.com"
-  #           path        = "/watch"
-  #           query       = "v=dQw4w9WgXcQ"
-  #           protocol    = "HTTPS"
-  #         }]
+  target_groups = {
+    ex-instance = {
+      name_prefix      = "h1"
+      protocol         = "HTTP"
+      port             = 80
+      target_type      = "instance"
+      target_id        = "i-0f6d38a07d50d080f"
+    }
+  }
 
-  #         conditions = [{
-  #           path_pattern = {
-  #             values = ["/onboarding", "/docs"]
-  #           }
-  #         }]
-  #       }
-  #     }
-  #   }
-  # }
-
-  target_groups = each.value.target_groups
-
+  tags = {
+    Environment = "Development"
+    Project     = "Example"
+  }
 }
