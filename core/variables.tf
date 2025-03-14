@@ -110,7 +110,7 @@ variable "eks" {
 variable "alb" {
   type = map(object({
     security_groups = list(string)
-    access_logs_bucket = optional(string)
+    access_logs_bucket = optional(string, "")
     listeners = map(any)
     target_groups = map(any)
   }))
