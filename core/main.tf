@@ -217,6 +217,8 @@ module "asg" {
 
   block_device_mappings = each.value.autoscaling.block_device_mappings
 
+  security_groups = module.vpc[0].vpc_security_group_ids
+
   capacity_reservation_specification = {
     capacity_reservation_preference = "open"
   }

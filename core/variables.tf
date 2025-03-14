@@ -25,7 +25,6 @@ variable "ec2" {
       max_size                     = optional(number, 10)
       desired_capacity             = optional(number, 1)
       health_check_type            = optional(string, "EC2")
-      iam_role_permissions_boundary   = optional(string,"")
       block_device_mappings        = optional(list(object({
         device_name = string
         ebs = object({
@@ -43,6 +42,7 @@ variable "ec2" {
     create_key             = optional(bool, false)
     key_name               = optional(string)
     vpc_security_group_ids = list(string)
+    iam_role_permissions_boundary   = optional(string,"")
   }))
   default = {}
 }
