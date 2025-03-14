@@ -312,3 +312,18 @@ module "alb" {
 
   tags = local.tags
 }
+
+module "s3_bucket" {
+  for_each = var.s3
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-s3-bucket.git?ref=v4.6.0"
+
+  bucket = format("%s-%s-%s", var.project.company, var.project.env, each.key)
+  acl    = each.value.acl
+
+  control_object_ownership = true
+  object_ownership         = "ObjectWriter"
+
+  versioning = {
+    enabled = each.value.versioning
+  }
+}

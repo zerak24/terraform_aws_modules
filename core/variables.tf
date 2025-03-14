@@ -115,3 +115,11 @@ variable "alb" {
   }))
   default = {}
 }
+
+variable "s3" {
+  type = map(object({
+    acl = optional(string, "private")
+    versioning = optional(bool, false)
+  }))
+  default = {}
+}
