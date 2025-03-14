@@ -266,7 +266,7 @@ module "asg" {
   }
 
   placement = {
-    availability_zone = var.vpc.zones[0]
+    availability_zone = "${each.value.zone}"
   }
 
   tags = local.tags
