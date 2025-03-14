@@ -22,3 +22,8 @@ variable "role" {
   })
   default = null
 }
+variable "policies" {
+  type = map(object({
+    policy = any
+  }))
+}

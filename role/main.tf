@@ -26,3 +26,15 @@ module "role" {
   additional_policy_arns  = var.role.additional_policy_arns
   tags                    = local.tags
 }
+
+
+
+module "iam_policy" {
+  for_each = var.policies
+  source  = "git::https://github.com/terraform-aws-modules/terraform-aws-iam.git//modules/iam-policy?ref=v5.54.0"
+
+  name        = format("%s-%s-%s-policy", var.project.company, var.project.env, each.key)
+  path        = "/"
+
+  policy = jsonencode(each.value.policy)
+}
