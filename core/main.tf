@@ -248,34 +248,14 @@ module "asg" {
   create_iam_instance_profile = true
   iam_role_name               = format("%s-%s-%s-role", var.project.company, var.project.env, each.key)
   iam_role_path               = "/ec2/"
-  iam_role_tags = {
-    CustomIamRole = "Yes"
-  }
-  iam_role_policies = {
-    AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  }
+  # iam_role_tags = {
+  #   CustomIamRole = "Yes"
+  # }
+  # iam_role_policies = {
+  #   AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  # }
 
-  block_device_mappings = [
-    {
-      device_name = "/dev/xvda"
-      no_device   = 0
-      ebs = {
-        delete_on_termination = true
-        encrypted             = true
-        volume_size           = 20
-        volume_type           = "gp2"
-      }
-    }, {
-      device_name = "/dev/sda1"
-      no_device   = 1
-      ebs = {
-        delete_on_termination = true
-        encrypted             = true
-        volume_size           = 30
-        volume_type           = "gp2"
-      }
-    }
-  ]
+  block_device_mappings = each.value.autoscaling.block_device_mappings
 
   capacity_reservation_specification = {
     capacity_reservation_preference = "open"
