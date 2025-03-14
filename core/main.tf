@@ -248,7 +248,7 @@ module "asg" {
   create_iam_instance_profile = true
   iam_role_name               = format("%s-%s-%s-role", var.project.company, var.project.env, each.key)
   iam_role_path               = "/ec2/"
-  iam_role_permissions_boundary = each.value.iam_role_permissions_boundary
+  # iam_role_permissions_boundary = each.value.iam_role_permissions_boundary
 
   block_device_mappings = each.value.autoscaling.block_device_mappings
 
