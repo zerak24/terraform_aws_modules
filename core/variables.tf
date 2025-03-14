@@ -25,7 +25,7 @@ variable "ec2" {
       max_size                     = optional(number, 10)
       desired_capacity             = optional(number, 1)
       health_check_type            = optional(string, "EC2")
-      iam_role_additional_policy   = optional(string)
+      iam_role_permissions_boundary   = optional(string,"")
       block_device_mappings        = optional(list(object({
         device_name = string
         ebs = object({
