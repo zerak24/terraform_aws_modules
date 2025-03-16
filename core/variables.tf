@@ -52,7 +52,7 @@ variable "ec2" {
     create_key             = optional(bool, false)
     key_name               = optional(string)
     vpc_security_group_ids = list(string)
-    iam_role_permissions_boundary   = optional(string,"")
+    iam_role_policies      = optional(map(string))
 
     lb = optional(list(string))
   }))
