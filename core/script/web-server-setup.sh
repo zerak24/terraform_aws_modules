@@ -1,7 +1,7 @@
 #! /bin/bash
 
-yum install -y httpd
-service httpd start
-chkconfig http on
-chown -R ubuntu /var/www/html
-echo "Hello World!" >> /var/www/html/index.html
+snap install apache
+
+echo '<html><body><h1>Hello World!</h1></body></html>' | sudo tee /var/www/html/index.html
+
+systemctl enable apache2
