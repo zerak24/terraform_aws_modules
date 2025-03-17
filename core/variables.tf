@@ -25,6 +25,7 @@ variable "ec2" {
       max_size                     = optional(number, 10)
       desired_capacity             = optional(number, 1)
       health_check_type            = optional(string, "EC2")
+      health_check_grace_period    = optional(number, 300)
       scaling_policies = map(object({
         policy_type = optional(string, "TargetTrackingScaling")
         estimated_instance_warmup = optional(number, 1200)

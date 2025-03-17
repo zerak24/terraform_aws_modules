@@ -170,6 +170,7 @@ module "asg" {
   max_size                  = each.value.autoscaling.max_size
   desired_capacity          = each.value.autoscaling.desired_capacity
   wait_for_capacity_timeout = 0
+  health_check_grace_period = each.value.autoscaling.health_check_grace_period
   health_check_type         = each.value.autoscaling.health_check_type
   user_data                 = try(filebase64(each.value.init_script), null)
   vpc_zone_identifier       = module.vpc[0].private_subnets
